@@ -1,9 +1,9 @@
 import argparse
 
-from deployment_status import getDeploymentHealthStatus
+from deployment_status import getDeploymentHealthStatus, getDeploymentDetails
 from setup_cluster import connectToKubernetesCluster, installHelm, installKEDA, summarizeClusterSetup, \
     installMetricServer
-from create_deployment import createHelmCommand, createDeployment, getDeploymentDetails
+from create_deployment import createHelmCommand, createDeployment
 
 
 def main():
@@ -19,6 +19,11 @@ def main():
     deploy_parser.add_argument('--namespace', required=True, help='The Kubernetes namespace')
     deploy_parser.add_argument('--release_name', required=True, help='The name of the Helm release')
     deploy_parser.add_argument('--set', action='append', help='Helm set parameters')
+
+    # Subparser for the get_deployment_status command
+    status_parser = subparsers.add_parser('get_deployment_status', help='Get deployment health status')
+    status_parser.add_argument('--release_name', required=True, help='The name of the Helm release')
+    status_parser.add_argument('--namespace', required=True, help='The Kubernetes namespace')
 
     args = parser.parse_args()
 
@@ -44,7 +49,7 @@ def main():
         if createDeployment(helm_command, args.release_name, "automation-chart"):
             getDeploymentDetails(args.release_name, args.namespace)
 
-    elif args.command == 'getDeploymentStatus':
+    elif args.command == 'get_deployment_status':
         release_name = args.release_name
         namespace = args.namespace
         getDeploymentHealthStatus(release_name, namespace)
