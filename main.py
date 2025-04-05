@@ -38,8 +38,7 @@ def main():
 
         helm_command = createHelmCommand(**helm_args)
         if createDeployment(helm_command, args.release_name, "automation-chart"):
-            deploymentDetails = getDeploymentDetails(args.release_name, args.namespace)
-            print(deploymentDetails)
+            getDeploymentDetails(args.release_name, args.namespace)
 
 
 if __name__ == '__main__':
