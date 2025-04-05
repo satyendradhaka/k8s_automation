@@ -64,65 +64,62 @@ def createDeployment(helmCommand, releaseName, chartName):
 
 def getDeploymentDetails(release_name, namespace):
     try:
-        deployment_name = f"{release_name}-deployment"
-        service_name = f"{release_name}-service"
-        scaledobject_name = f"{release_name}-scaledobject"
-
-        # Deployment
+        # Get Deployment details
         deployment_json = runKubectlCommand([
-            "get", "deployment", deployment_name,
-            "-n", namespace,
-            "-o", "json"
+            "get", "deployment", f"{release_name}-deployment",
+            "-n", namespace, "-o", "json"
         ])
         deployment = json.loads(deployment_json)
-        replicas = deployment['spec']['replicas']
-        available = deployment['status'].get('availableReplicas', 0)
 
-        # Service
+        replicas = deployment['spec']['replicas']
+        image = deployment['spec']['template']['spec']['containers'][0]['image']
+        container_port = deployment['spec']['template']['spec']['containers'][0]['ports'][0]['containerPort']
+
+        print(f"\n✅ Deployment '{release_name}-deployment':")
+        print(f"  🔹 Image: {image}")
+        print(f"  🔹 Replicas: {replicas}")
+        print(f"  🔹 Container Port: {container_port}")
+
+        # Get Service details
         service_json = runKubectlCommand([
-            "get", "svc", service_name,
-            "-n", namespace,
-            "-o", "json"
+            "get", "service", f"{release_name}-service",
+            "-n", namespace, "-o", "json"
         ])
         service = json.loads(service_json)
-        node_port = service['spec']['ports'][0].get('nodePort')
-        service_port = service['spec']['ports'][0].get('port')
-        endpoint = f"http://localhost:{node_port}" if node_port else "N/A"
 
-        # Scaling (KEDA ScaledObject)
+        cluster_ip = service['spec'].get('clusterIP', 'N/A')
+        node_port = service['spec']['ports'][0].get('nodePort', 'N/A')
+        service_port = service['spec']['ports'][0]['port']
+
+        cluster_dns = f"{release_name}-service.{namespace}.svc.cluster.local"
+
+        print(f"\n🌐 Service '{release_name}-service':")
+        print(f"  🔹 ClusterIP: {cluster_ip}")
+        print(f"  🔹 Port: {service_port}")
+        if node_port != 'N/A':
+            print(f"  🔹 NodePort: {node_port}")
+        print(f"  🔹 Cluster DNS: {cluster_dns}")
+
+        # Get KEDA ScaledObject (optional if enabled)
         try:
-            scaledobject_json = runKubectlCommand([
-                "get", "scaledobject", scaledobject_name,
-                "-n", namespace,
-                "-o", "json"
+            scaled_object_json = runKubectlCommand([
+                "get", "scaledobject.keda.sh", f"{release_name}-scaledobject",
+                "-n", namespace, "-o", "json"
             ])
-            scaledobject = json.loads(scaledobject_json)
-            min_replicas = scaledobject['spec'].get('minReplicaCount')
-            max_replicas = scaledobject['spec'].get('maxReplicaCount')
-            triggers = scaledobject['spec'].get('triggers', [])
+            scaled_object = json.loads(scaled_object_json)
+            min_replicas = scaled_object['spec'].get('minReplicaCount', 'N/A')
+            max_replicas = scaled_object['spec'].get('maxReplicaCount', 'N/A')
+            triggers = scaled_object['spec'].get('triggers', [])
+
+            print(f"\n📈 KEDA ScaledObject '{release_name}-scaledobject':")
+            print(f"  🔹 Min Replicas: {min_replicas}")
+            print(f"  🔹 Max Replicas: {max_replicas}")
+            print("  🔹 Triggers:")
+            for trigger in triggers:
+                print(f"    - {trigger['type']}: {trigger.get('metadata', {})}")
+
         except subprocess.CalledProcessError:
-            min_replicas = max_replicas = "N/A"
-            triggers = []
+            print("\nℹ️ KEDA ScaledObject not found or not enabled.")
 
-        return {
-            "deployment": {
-                "name": deployment_name,
-                "replicas": replicas,
-                "available": available
-            },
-            "service": {
-                "name": service_name,
-                "port": service_port,
-                "nodePort": node_port,
-                "endpoint": endpoint
-            },
-            "scaling": {
-                "minReplicas": min_replicas,
-                "maxReplicas": max_replicas,
-                "triggers": triggers
-            }
-        }
-
-    except Exception as e:
-        print(f"⚠️ Failed to fetch deployment details: {e}")
-        return {}
+    except subprocess.CalledProcessError as e:
+        print(f"❌ Error fetching deployment info: {e}")
