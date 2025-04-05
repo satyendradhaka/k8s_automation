@@ -1,5 +1,8 @@
 import argparse
-from setup_cluster import connectToKubernetesCluster, installHelm, installKEDA, summarizeClusterSetup
+
+from deployment_status import getDeploymentHealthStatus
+from setup_cluster import connectToKubernetesCluster, installHelm, installKEDA, summarizeClusterSetup, \
+    installMetricServer
 from create_deployment import createHelmCommand, createDeployment, getDeploymentDetails
 
 
@@ -24,6 +27,7 @@ def main():
         if connectToKubernetesCluster(configFilePath):
             installHelm()
             installKEDA()
+            installMetricServer()
             summarizeClusterSetup()
 
     elif args.command == 'create_deployment':
@@ -39,6 +43,11 @@ def main():
         helm_command = createHelmCommand(**helm_args)
         if createDeployment(helm_command, args.release_name, "automation-chart"):
             getDeploymentDetails(args.release_name, args.namespace)
+
+    elif args.command == 'getDeploymentStatus':
+        release_name = args.release_name
+        namespace = args.namespace
+        getDeploymentHealthStatus(release_name, namespace)
 
 
 if __name__ == '__main__':

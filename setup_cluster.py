@@ -2,6 +2,8 @@ import subprocess
 
 from kubernetes import client, config
 
+from utils import runKubectlCommand
+
 
 def connectToKubernetesCluster(configFilePath):
     """
@@ -24,7 +26,10 @@ def connectToKubernetesCluster(configFilePath):
 
 def installHelm():
     """
-    install helm
+    install helm using below command
+    curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
+    $ chmod 700 get_helm.sh
+    $ ./get_helm.sh
     """
 
     try:
@@ -49,6 +54,19 @@ def installKEDA():
         print("KEDA installed successfully.")
     except subprocess.CalledProcessError as e:
         print(f"Failed to install KEDA: {e}")
+        return False
+
+
+def installMetricServer():
+    """
+    Install Metric server using kubectl
+    """
+    try:
+        runKubectlCommand(["apply", "-f",
+                           "https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml"])
+        print("Metric server installed successfully.")
+    except subprocess.CalledProcessError as e:
+        print(f"Failed to install metric server: {e}")
         return False
 
 
