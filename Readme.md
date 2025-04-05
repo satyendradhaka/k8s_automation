@@ -48,6 +48,9 @@ python main.py create_deployment --namespace <namespace> --release_name <release
 - `--release_name`: The name of the Helm release
 - `--set`: Helm set parameters (optional, can be used multiple times)
 
+Sample Output
+![img.png](img.png)
+
 ### Get Deployment Status
 
 To check the health status of a deployment:
@@ -58,6 +61,9 @@ python main.py get_deployment_status --namespace <namespace> --release_name <rel
 
 - `--namespace`: The Kubernetes namespace
 - `--release_name`: The name of the Helm release
+
+Sample output
+![img_1.png](img_1.png)
 
 ## Scripts
 
