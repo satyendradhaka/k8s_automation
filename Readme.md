@@ -6,7 +6,7 @@ This project provides a set of scripts to automate the setup of a Kubernetes clu
 
 - Python 3.6+
 - Kubernetes cluster
-- `kubectl` configured to access your cluster
+- kubeconfig file
 
 ## Installation
 
