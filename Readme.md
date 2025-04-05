@@ -14,8 +14,8 @@ This project provides a set of scripts to automate the setup of a Kubernetes clu
 1. Clone the repository:
 
     ```sh
-    git clone <repository-url>
-    cd <repository-directory>
+    git clone https://github.com/satyendradhaka/k8s_automation
+    cd k8s_automation
     ```
 
 2. Install the required Python packages:
@@ -41,12 +41,13 @@ python main.py connect --config <path-to-kubeconfig>
 To create a deployment in the Kubernetes cluster:
 
 ```sh
-python main.py create_deployment --namespace <namespace> --release_name <release-name> --set <key=value>
+python main.py create_deployment --namespace <namespace> --release_name <release-name> --set <key=value> --values_file <path-to-values-file>
 ```
 
 - `--namespace`: The Kubernetes namespace
 - `--release_name`: The name of the Helm release
 - `--set`: Helm set parameters (optional, can be used multiple times)
+- `--values_file`: Path to the Helm values file (optional)
 
 Sample Output
 ![img.png](img.png)

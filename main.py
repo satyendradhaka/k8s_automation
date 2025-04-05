@@ -19,6 +19,7 @@ def main():
     deploy_parser.add_argument('--namespace', required=True, help='The Kubernetes namespace')
     deploy_parser.add_argument('--release_name', required=True, help='The name of the Helm release')
     deploy_parser.add_argument('--set', action='append', help='Helm set parameters')
+    deploy_parser.add_argument('--values_file', type=str, help='Path to the values file')
 
     # Subparser for the get_deployment_status command
     status_parser = subparsers.add_parser('get_deployment_status', help='Get deployment health status')
@@ -40,6 +41,10 @@ def main():
             'namespace': args.namespace,
             'release_name': args.release_name
         }
+
+        if args.values_file:
+            helm_args['values_file'] = args.values_file
+
         if args.set:
             for set_arg in args.set:
                 key, value = set_arg.split('=')
