@@ -1,0 +1,48 @@
+{{- if .Values.keda.enabled }}
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: {{ .Release.Name }}-scaledobject
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: {{ .Release.Name }}-deployment
+
+  minReplicaCount: {{ required "keda.minReplicas is required" .Values.keda.minReplicas }}
+  maxReplicaCount: {{ required "keda.maxReplicas is required" .Values.keda.maxReplicas }}
+
+  advanced:
+    horizontalPodAutoscalerConfig:
+      behavior:
+        scaleUp:
+          stabilizationWindowSeconds: {{ required "keda.behavior.scaleUp.stabilizationWindowSeconds is required" .Values.keda.behavior.scaleUp.stabilizationWindowSeconds }}
+          policies:
+            - type: Percent
+              value: {{ required "keda.behavior.scaleUp.policy.value is required" .Values.keda.behavior.scaleUp.policy.value }}
+              periodSeconds: {{ required "keda.behavior.scaleUp.policy.periodSeconds is required" .Values.keda.behavior.scaleUp.policy.periodSeconds }}
+        scaleDown:
+          stabilizationWindowSeconds: {{ required "keda.behavior.scaleDown.stabilizationWindowSeconds is required" .Values.keda.behavior.scaleDown.stabilizationWindowSeconds }}
+          policies:
+            - type: Percent
+              value: {{ required "keda.behavior.scaleDown.policy.value is required" .Values.keda.behavior.scaleDown.policy.value }}
+              periodSeconds: {{ required "keda.behavior.scaleDown.policy.periodSeconds is required" .Values.keda.behavior.scaleDown.policy.periodSeconds }}
+
+  triggers:
+    - type: {{ required "keda.trigger.type is required" .Values.keda.trigger.type }}
+      metadata:
+        bootstrapServers: {{ required "keda.trigger.metadata.bootstrapServers is required" .Values.keda.trigger.metadata.bootstrapServers | quote }}
+        topic: {{ required "keda.trigger.metadata.topic is required" .Values.keda.trigger.metadata.topic | quote }}
+        consumerGroup: {{ required "keda.trigger.metadata.consumerGroup is required" .Values.keda.trigger.metadata.consumerGroup | quote }}
+        lagThreshold: {{ required "keda.trigger.metadata.lagThreshold is required" .Values.keda.trigger.metadata.lagThreshold | quote }}
+
+    - type: cpu
+      metadata:
+        type: Utilization
+        value: {{ required "keda.trigger.metadata.cpuThreshold is required" .Values.keda.trigger.metadata.cpuThreshold | quote }}
+
+    - type: memory
+      metadata:
+        type: Utilization
+        value: {{ required "keda.trigger.metadata.memoryThreshold is required" .Values.keda.trigger.metadata.memoryThreshold | quote }}
+{{- end }}

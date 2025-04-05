@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-deployment
+  labels:
+    app: {{ .Release.Name }}
+spec:
+  replicas: {{ required "replicaCount is required" .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Release.Name }}
+    spec:
+      containers:
+        - name: {{ .Release.Name }}
+          image: "{{ required "container.image.repository is required" .Values.container.image.repository }}:{{ required "container.image.tag is required" .Values.container.image.tag }}"
+          ports:
+            - containerPort: {{ required "container.port is required" .Values.container.port }}
+          resources:
+            requests:
+              cpu: {{ required "container.resources.requests.cpu is required" .Values.container.resources.requests.cpu }}
+              memory: {{ required "container.resources.requests.memory is required" .Values.container.resources.requests.memory }}
+            limits:
+              cpu: {{ required "container.resources.limits.cpu is required" .Values.container.resources.limits.cpu }}
+              memory: {{ required "container.resources.limits.memory is required" .Values.container.resources.limits.memory }}
